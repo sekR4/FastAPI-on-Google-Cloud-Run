@@ -5,15 +5,17 @@ This is a very simple hello-world-walkthrough with FastAPI and Cloud Run.
 ## Initial Setup
 To play through this tutorial, I recommend creating a new project. You can do this in the console or [with the Cloud SDK](https://cloud.google.com/sdk/gcloud/reference/projects/create) (recommended). You can find your billing account id [here](https://console.cloud.google.com/billing)
 
+First, create a new repository through the console in artifact registry for region "europe-west3" with name `docker-fastapi`.
 
 Create  your new project.
 ```bash
 export PROJECT_ID=<YOUR_UNIQUE_LOWER_CASE_PROJECT_ID>
+export DOCKER_REPOSITORY="docker-fastapi"
 export BILLING_ACCOUNT_ID=<YOUR_BILLING_ACCOUNT_ID>
 export APP=myapp 
 export PORT=1234
 export REGION="europe-west3"
-export TAG="gcr.io/$PROJECT_ID/$APP"
+export TAG="$REGION.pkg.dev/$PROJECT_ID/$DOCKER_REPOSITORY/$APP:tag1"
 
 gcloud projects create $PROJECT_ID --name="My FastAPI App"
 
@@ -91,10 +93,18 @@ Again you can check it in your browser our curl it:
 ```
 
 ## Deployment
-If everything worked out so far, we're ready to deploy our app. First we create a Google Cloud Build. Maybe it's similar to pushing a docker image to a docker registry.
+If everything worked out so far, we're ready to deploy our app. First we push the docker image we created to the artifact registry repository.
+
+Before, we need to authenticate to the repository
 
 ```bash
-gcloud builds submit --tag $TAG
+gcloud auth configure-docker $REGION-docker.pkg.dev
+```
+
+Then, we can push the image that we created with `docker build` previously.
+
+```bash
+docker push "$TAG"
 ```
 
 After this is done, well it's finally time to deploy your cloud run app :).
